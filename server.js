@@ -15,6 +15,8 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
+const helmet = require("helmet");
+app.use(helmet());
 app.use(cors()); // Allow all origins for now to simplify development
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
