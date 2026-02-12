@@ -14,23 +14,9 @@ const transporter = nodemailer.createTransport({
 });
 
 exports.signup = async (req, res) => {
-    const { email, password, displayName, otp } = req.body;
+    const { email, password, displayName } = req.body;
     try {
-        // Verify OTP from signup_otps collection
-        const otpDoc = await db.collection("signup_otps").doc(email).get();
-
-        if (!otpDoc.exists) {
-            return res.status(400).json({ error: "OTP not found or expired. Please request a new one." });
-        }
-
-        const otpData = otpDoc.data();
-        if (otpData.otp !== otp) {
-            return res.status(400).json({ error: "Invalid OTP" });
-        }
-
-        if (Date.now() > otpData.expiresAt) {
-            return res.status(400).json({ error: "OTP expired. Please request a new one." });
-        }
+        // DIRECT SIGNUP - NO OTP VERIFICATION
 
         // Proceed with signup
         const userRecord = await admin.auth().createUser({
@@ -54,9 +40,6 @@ exports.signup = async (req, res) => {
             createdAt: new Date(),
         });
         await newUser.save();
-
-        // Delete used signup OTP
-        await db.collection("signup_otps").doc(email).delete();
 
         res.status(201).json({
             message: "User created successfully",
