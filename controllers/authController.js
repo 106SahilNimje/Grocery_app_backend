@@ -5,12 +5,26 @@ const User = require("../models/User"); // Import User model
 
 // Nodemailer Transporter
 // NOTE: Use environment variables for real credentials
+// Nodemailer Transporter
+// NOTE: Use environment variables for real credentials
 const transporter = nodemailer.createTransport({
     service: "gmail",
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true, // true for 465, false for other ports
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
     },
+});
+
+// Verify connection configuration
+transporter.verify(function (error, success) {
+    if (error) {
+        console.log("[Nodemailer] Connection Error:", error);
+    } else {
+        console.log("[Nodemailer] Server is ready to take our messages");
+    }
 });
 
 exports.signup = async (req, res) => {
