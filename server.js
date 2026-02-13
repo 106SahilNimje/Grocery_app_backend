@@ -17,6 +17,8 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(helmet());
+app.use(cors()); // Allow all origins for now to simplify development
+app.use(express.json());
 
 //change .......................................................................................................
 // Global Request Logger
@@ -28,8 +30,6 @@ app.use((req, res, next) => {
     next();
 });
 //change .......................................................................................................
-app.use(cors()); // Allow all origins for now to simplify development
-app.use(express.json());
 
 // Ensure uploads directory exists
 const uploadDir = path.join(__dirname, 'uploads');
