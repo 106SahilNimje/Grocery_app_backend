@@ -104,7 +104,8 @@ router.post('/', upload.array('images'), async (req, res) => {
         // Handle Image URL
         let imageUrl = '';
         if (req.files && req.files.length > 0) {
-            imageUrl = `http://localhost:${process.env.PORT || 5000}/uploads/${req.files[0].filename}`;
+            // Store relative path
+            imageUrl = `uploads/${req.files[0].filename}`;
         } else if (req.body.image) {
             imageUrl = req.body.image;
         } else {
@@ -165,7 +166,7 @@ router.put('/:id', upload.array('images'), async (req, res) => {
         };
 
         if (req.files && req.files.length > 0) {
-            updateData.image = `http://localhost:${process.env.PORT || 5000}/uploads/${req.files[0].filename}`;
+            updateData.image = `uploads/${req.files[0].filename}`;
         }
 
         const updatedProduct = await Product.findByIdAndUpdate(
