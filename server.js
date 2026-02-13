@@ -17,6 +17,17 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(helmet());
+
+//change .......................................................................................................
+// Global Request Logger
+app.use((req, res, next) => {
+    console.log(`[Request] ${req.method} ${req.url}`);
+    if (Object.keys(req.body).length > 0) {
+        console.log("Body:", JSON.stringify(req.body, null, 2));
+    }
+    next();
+});
+//change .......................................................................................................
 app.use(cors()); // Allow all origins for now to simplify development
 app.use(express.json());
 
