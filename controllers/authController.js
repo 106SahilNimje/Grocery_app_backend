@@ -10,8 +10,8 @@ const User = require("../models/User"); // Import User model
 const transporter = nodemailer.createTransport({
     service: "gmail",
     host: "smtp.gmail.com",
-    port: 465,
-    secure: true,
+    port: 587,
+    secure: false, // true for 465, false for other ports
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
@@ -20,7 +20,9 @@ const transporter = nodemailer.createTransport({
     tls: {
         rejectUnauthorized: false
     },
-    family: 4
+    family: 4,
+    logger: true,
+    debug: true
 });
 
 // Verify connection configuration
