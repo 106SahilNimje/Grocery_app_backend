@@ -9,19 +9,20 @@ const User = require("../models/User"); // Import User model
 // NOTE: Use environment variables for real credentials
 // Nodemailer Transporter
 // NOTE: Use environment variables for real credentials
+// Nodemailer Transporter
+// NOTE: Use environment variables for real credentials
 const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 465,
-    secure: true, // true for 465, false for other ports
+    host: process.env.SMTP_HOST || "smtp-relay.brevo.com", // Default to Brevo
+    port: process.env.SMTP_PORT || 587,
+    secure: false, // true for 465, false for other ports
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
     },
-    // Force IPv4 to avoid ETIMEDOUT on some cloud providers
+    // Force IPv4 if needed
     tls: {
         rejectUnauthorized: false
     },
-    family: 4,
     logger: true,
     debug: true
 });
