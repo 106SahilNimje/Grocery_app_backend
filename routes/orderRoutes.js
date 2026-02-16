@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const router = express.Router();
 const Order = require('../models/Order');
+const CartOrder = require('../models/CartOrder');
 
 const { sendOrderConfirmation } = require('../utils/whatsappService');
 
@@ -58,14 +59,28 @@ router.put('/:id/status', async (req, res) => {
 // GET /api/orders/:id - Get specific order by ID
 router.get('/:id', async (req, res) => {
     try {
-        const order = await Order.findById(req.params.id)
+        let order = await Order.findById(req.params.id)
             .populate('user')
             .populate('items.product');
+
+        let paymentMethod = 'Cash on Delivery';
+
+        if (!order) {
+            order = await CartOrder.findById(req.params.id)
+                .populate('user')
+                .populate('items.product');
+            paymentMethod = 'Razorpay';
+        }
 
         if (!order) {
             return res.status(404).json({ error: "Order not found" });
         }
-        res.json(order);
+
+        // Convert to object and add paymentMethod
+        const orderObj = order.toObject();
+        orderObj.paymentMethod = paymentMethod;
+
+        res.json(orderObj);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -83,8 +98,18 @@ router.get('/', async (req, res) => {
     const filter = userId ? { user: userId } : {};
 
     try {
+        // Fetch standard orders (COD)
         const orders = await Order.find(filter).populate('user').populate('items.product').sort({ createdAt: -1 });
-        res.json(orders);
+        const ordersWithMethod = orders.map(o => ({ ...o.toObject(), paymentMethod: 'Cash on Delivery' }));
+
+        // Fetch Razorpay orders
+        const cartOrders = await CartOrder.find(filter).populate('user').populate('items.product').sort({ createdAt: -1 });
+        const cartOrdersWithMethod = cartOrders.map(o => ({ ...o.toObject(), paymentMethod: 'Razorpay' }));
+
+        // Merge and sort by createdAt descending
+        const allOrders = [...ordersWithMethod, ...cartOrdersWithMethod].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+        res.json(allOrders);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
