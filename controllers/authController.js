@@ -5,12 +5,35 @@ const User = require("../models/User"); // Import User model
 
 // Nodemailer Transporter
 // NOTE: Use environment variables for real credentials
+// Nodemailer Transporter
+// NOTE: Use environment variables for real credentials
+// Nodemailer Transporter
+// NOTE: Use environment variables for real credentials
+// Nodemailer Transporter
+// NOTE: Use environment variables for real credentials
 const transporter = nodemailer.createTransport({
-    service: "gmail",
+    host: process.env.SMTP_HOST || "smtp-relay.brevo.com", // Default to Brevo
+    port: process.env.SMTP_PORT || 587,
+    secure: false, // true for 465, false for other ports
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
     },
+    // Force IPv4 if needed
+    tls: {
+        rejectUnauthorized: false
+    },
+    logger: true,
+    debug: true
+});
+
+// Verify connection configuration
+transporter.verify(function (error, success) {
+    if (error) {
+        console.log("[Nodemailer] Connection Error:", error);
+    } else {
+        console.log("[Nodemailer] Server is ready to take our messages");
+    }
 });
 
 exports.signup = async (req, res) => {
@@ -133,19 +156,31 @@ exports.login = async (req, res) => {
 
 exports.forgotPassword = async (req, res) => {
     const { email } = req.body;
+    console.log(`[Auth] Forgot Password requested for: ${email}`);
+
     try {
+        if (!email) {
+            console.log("[Auth] Error: Email is missing in request body");
+            return res.status(400).json({ error: "Email is required" });
+        }
+
         // Verify user exists
+        console.log(`[Auth] Checking if user ${email} exists in Firebase...`);
         await admin.auth().getUserByEmail(email);
+        console.log(`[Auth] User ${email} found in Firebase`);
 
         // Generate 6-digit OTP
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+        console.log(`[Auth] Generated OTP for ${email}`);
 
         // Store OTP in Firestore
+        console.log(`[Auth] Saving OTP to Firestore for ${email}...`);
         await db.collection("otps").doc(email).set({
             otp,
             expiresAt,
         });
+        console.log(`[Auth] OTP saved to Firestore`);
 
         // Send Email
         const mailOptions = {
@@ -155,11 +190,16 @@ exports.forgotPassword = async (req, res) => {
             text: `Your OTP for password reset is: ${otp}. It expires in 10 minutes.`,
         };
 
+        console.log(`[Auth] Sending email to ${email}...`);
         await transporter.sendMail(mailOptions);
+        console.log(`[Auth] Email sent successfully to ${email}`);
 
         res.status(200).json({ message: "OTP sent to email" });
     } catch (error) {
+        console.error(`[Auth] Forgot Password Error for ${email}:`, error);
+
         if (error.code === 'auth/user-not-found') {
+            console.log(`[Auth] User ${email} not found in Firebase`);
             return res.status(404).json({ error: "User not found" });
         }
         res.status(500).json({ error: error.message });

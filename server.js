@@ -20,6 +20,17 @@ app.use(helmet());
 app.use(cors()); // Allow all origins for now to simplify development
 app.use(express.json());
 
+//change .......................................................................................................
+// Global Request Logger
+app.use((req, res, next) => {
+    console.log(`[Request] ${req.method} ${req.url}`);
+    if (Object.keys(req.body).length > 0) {
+        console.log("Body:", JSON.stringify(req.body, null, 2));
+    }
+    next();
+});
+//change .......................................................................................................
+
 // Ensure uploads directory exists
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
