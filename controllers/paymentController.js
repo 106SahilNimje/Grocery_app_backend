@@ -1,6 +1,7 @@
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const CartOrder = require('../models/CartOrder');
+const Order = require('../models/Order');
 const User = require('../models/User'); // Assuming you have a User model
 require('dotenv').config();
 
@@ -58,19 +59,26 @@ exports.verifyPayment = async (req, res) => {
 
         if (isAuthentic) {
             // Payment successful, save to MongoDB
-            const { user, items, totalAmount, shippingAddress } = orderData;
+            const { user, items, totalAmount, shippingAddress, phone } = orderData; // Added phone
 
-            const newOrder = new CartOrder({
+            const newOrder = new Order({
                 user,
                 items,
                 totalAmount,
                 shippingAddress,
-                paymentId: razorpay_payment_id,
-                orderId: razorpay_order_id,
-                signature: razorpay_signature,
                 paymentStatus: 'Completed',
                 orderStatus: 'Processing',
+                paymentId: razorpay_payment_id,
+                razorpayOrderId: razorpay_order_id,
+                signature: razorpay_signature,
             });
+
+            await newOrder.save();
+
+            // Update user phone if provided
+            if (phone) {
+                await User.findByIdAndUpdate(user, { phone: phone });
+            }
 
             await newOrder.save();
 

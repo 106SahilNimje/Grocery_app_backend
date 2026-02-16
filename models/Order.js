@@ -46,6 +46,10 @@ const orderSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
+    // Payment Details
+    paymentId: { type: String },
+    razorpayOrderId: { type: String },
+    signature: { type: String },
 });
 
 module.exports = mongoose.model('Order', orderSchema);
