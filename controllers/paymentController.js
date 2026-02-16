@@ -94,3 +94,29 @@ exports.verifyPayment = async (req, res) => {
         });
     }
 };
+
+// Get Payment History
+exports.getPaymentHistory = async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        if (!userId) {
+            return res.status(400).json({ success: false, message: "User ID is required" });
+        }
+
+        const history = await CartOrder.find({ user: userId })
+            .sort({ createdAt: -1 });
+
+        res.json({
+            success: true,
+            history
+        });
+    } catch (error) {
+        console.error("Error fetching payment history:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to fetch payment history",
+            error: error.message
+        });
+    }
+};
