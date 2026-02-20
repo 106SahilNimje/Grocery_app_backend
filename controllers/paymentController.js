@@ -80,6 +80,24 @@ exports.verifyPayment = async (req, res) => {
                 await User.findByIdAndUpdate(user, { phone: phone });
             }
 
+            // Decrement Stock
+            try {
+                for (const item of items) {
+                    if (item.product) {
+                        const productDoc = await require('../models/Product').findById(item.product);
+                        if (productDoc && item.variant) {
+                            const variantObj = productDoc.variants.find(v => v.unit === item.variant);
+                            if (variantObj) {
+                                variantObj.stock = Math.max(0, variantObj.stock - item.quantity);
+                                await productDoc.save();
+                            }
+                        }
+                    }
+                }
+            } catch (stockError) {
+                console.error("Stock Deduction Error (Razorpay):", stockError.message);
+            }
+
             await newOrder.save();
 
             res.json({

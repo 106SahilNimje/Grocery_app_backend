@@ -13,6 +13,7 @@ const orderSchema = new mongoose.Schema({
                 ref: 'Product',
             },
             name: { type: String }, // Store name in case product is deleted
+            variant: { type: String },
             quantity: {
                 type: Number,
                 required: true,
