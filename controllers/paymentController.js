@@ -130,8 +130,10 @@ exports.getPaymentHistory = async (req, res) => {
             return res.status(400).json({ success: false, message: "User ID is required" });
         }
 
-        const history = await CartOrder.find({ user: userId })
-            .sort({ createdAt: -1 });
+        const history = await Order.find({
+            user: userId,
+            paymentId: { $exists: true, $ne: null }
+        }).sort({ createdAt: -1 });
 
         res.json({
             success: true,
